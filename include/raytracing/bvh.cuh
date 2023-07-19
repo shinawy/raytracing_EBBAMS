@@ -44,14 +44,36 @@ using FixedIntStack = FixedStack<int>;
 
 class TriangleBvh {
 
+private: 
+    // here should go the max_dist and min_dist declarations
+
 protected:
     std::vector<TriangleBvhNode> m_nodes;
     GPUMemory<TriangleBvhNode> m_nodes_gpu;
     TriangleBvh() {};
+    
+    // max_dist is the maximum distance after which the ray will be considered to have 0 intersections with the mesh
+    // min_dist is the minimum distance that filters the faces from which the ray exits
+    // without the  minimum distance, the code will count the face from which the ray exits as an intersection face
+    TriangleBvh(float attr_max_dist, float attr_min_dist) {};
+
 
 public:
+
+    float max_dist= 10.0f;
+    float min_dist= 0.0001f;
+    float max_dist_sq= max_dist*max_dist;
+
+
     virtual void build(std::vector<Triangle>& triangles, uint32_t n_primitives_per_leaf) = 0;
-    virtual void ray_trace_gpu(uint32_t n_elements, const float* rays_o, const float* rays_d, float* positions, float* normals, float* depth, const Triangle* gpu_triangles, cudaStream_t stream) = 0;
+    // max_dist is the maximum distance after which the ray will be considered to have 0 intersections with the mesh
+    // min_dist is the minimum distance that filters the faces from which the ray exits
+    // without the  minimum distance, the code will count the face from which the ray exits as an intersection face
+    virtual void set_max_min_distance(float max_dist, float min_dist)=0;
+    virtual float get_max_distance()=0;
+    virtual float get_min_distance()=0;
+
+    virtual void ray_trace_gpu(uint32_t n_elements, const float* rays_o, const float* rays_d, float* positions, float* normals, float* depth, float* ray_hit_freq_arr, const Triangle* gpu_triangles, cudaStream_t stream) = 0;
 
     // KIUI: not supported now.
     // virtual void signed_distance_gpu(uint32_t n_elements, EMeshSdfMode mode, const Eigen::Vector3f* gpu_positions, float* gpu_distances, const Triangle* gpu_triangles, bool use_existing_distances_as_upper_bounds, cudaStream_t stream) = 0;

@@ -6,7 +6,7 @@ import torch
 import _raytracing as _backend
 
 class RayTracer():
-    def __init__(self, vertices, triangles):
+    def __init__(self, vertices, triangles, max_dist, min_dist):
         # vertices: np.ndarray, [N, 3]
         # triangles: np.ndarray, [M, 3]
 
@@ -16,7 +16,7 @@ class RayTracer():
         assert triangles.shape[0] > 8, "BVH needs at least 8 triangles."
         
         # implementation
-        self.impl = _backend.create_raytracer(vertices, triangles)
+        self.impl = _backend.create_raytracer(vertices, triangles, max_dist, min_dist)
 
     def trace(self, rays_o, rays_d, inplace=False):
         # rays_o: torch.Tensor, cuda, float, [N, 3]
@@ -44,12 +44,16 @@ class RayTracer():
             face_normals = rays_d
 
         depth = torch.empty_like(rays_o[:, 0])
+        ray_hit_freq_arr= torch.zeros_like(rays_o[:, 0])
         
         # inplace write intersections back to rays_o
-        self.impl.trace(rays_o, rays_d, positions, face_normals, depth) # [N, 3]
+        self.impl.trace(rays_o, rays_d, positions, face_normals, depth, ray_hit_freq_arr) # [N, 3]
 
         positions = positions.view(*prefix, 3)
         face_normals = face_normals.view(*prefix, 3)
         depth = depth.view(*prefix)
+        ray_hit_freq_arr= ray_hit_freq_arr.view(*prefix)
+        # print ("_raytracing location: {}".format(_backend.__file__))
 
-        return positions, face_normals, depth
+
+        return positions, face_normals, depth, ray_hit_freq_arr
