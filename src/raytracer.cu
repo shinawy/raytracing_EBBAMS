@@ -18,7 +18,7 @@ class RayTracerImpl : public RayTracer {
 public:
 
     // accept numpy array (cpu) to init 
-    RayTracerImpl(Ref<const Verts> vertices, Ref<const Trigs> triangles) : RayTracer() {
+    RayTracerImpl(Ref<const Verts> vertices, Ref<const Trigs> triangles, float max_dist, float min_dist) : RayTracer() {
 
         const size_t n_vertices = vertices.rows();
         const size_t n_triangles = triangles.rows();
@@ -34,7 +34,7 @@ public:
         }
 
         triangle_bvh->build(triangles_cpu, 8);
-
+        triangle_bvh ->set_max_min_distance(max_dist, min_dist);
         triangles_gpu.resize_and_copy_from_host(triangles_cpu);
 
         // TODO: need OPTIX
@@ -43,14 +43,15 @@ public:
     }
 
     // accept torch tensor (gpu) to init
-    void trace(at::Tensor rays_o, at::Tensor rays_d, at::Tensor positions, at::Tensor normals, at::Tensor depth) {
+    void trace(at::Tensor rays_o, at::Tensor rays_d, at::Tensor positions, at::Tensor normals, at::Tensor depth, at::Tensor ray_hit_freq_arr) {
 
         // must be contiguous, float, cuda, shape [N, 3]. check in torch side.
 
         const uint32_t n_elements = rays_o.size(0);
         cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-        triangle_bvh->ray_trace_gpu(n_elements, rays_o.data_ptr<float>(), rays_d.data_ptr<float>(), positions.data_ptr<float>(), normals.data_ptr<float>(), depth.data_ptr<float>(), triangles_gpu.data(), stream);
+        
+        triangle_bvh->ray_trace_gpu(n_elements, rays_o.data_ptr<float>(), rays_d.data_ptr<float>(), positions.data_ptr<float>(), normals.data_ptr<float>(), depth.data_ptr<float>(), ray_hit_freq_arr.data_ptr<float>(), triangles_gpu.data(), stream);
     }
 
     std::vector<Triangle> triangles_cpu;
@@ -58,8 +59,8 @@ public:
     std::shared_ptr<TriangleBvh> triangle_bvh;
 };
     
-RayTracer* create_raytracer(Ref<const Verts> vertices, Ref<const Trigs> triangles) {
-    return new RayTracerImpl{vertices, triangles};
+RayTracer* create_raytracer(Ref<const Verts> vertices, Ref<const Trigs> triangles, float max_dist, float min_dist) {
+    return new RayTracerImpl{vertices, triangles, max_dist, min_dist };
 }
 
 } // namespace raytracing

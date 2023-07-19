@@ -18,10 +18,11 @@ public:
     RayTracer() {}
     virtual ~RayTracer() {}
 
-    virtual void trace(at::Tensor rays_o, at::Tensor rays_d, at::Tensor positions, at::Tensor normals, at::Tensor depth) = 0;
+    virtual void trace(at::Tensor rays_o, at::Tensor rays_d, at::Tensor positions, at::Tensor normals, at::Tensor depth, at::Tensor ray_hit_freq_arr) = 0;
+    
 };
 
 // function to create an implementation of raytracer
-RayTracer* create_raytracer(Ref<const Verts> vertices, Ref<const Trigs> triangles);
+RayTracer* create_raytracer(Ref<const Verts> vertices, Ref<const Trigs> triangles, float max_dist, float min_dist);
     
 } // namespace raytracing
