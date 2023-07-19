@@ -1,0 +1,21 @@
+Metadata-Version: 2.1
+Name: raytracing
+Version: 0.1.0
+Summary: CUDA RayTracer with BVH acceleration
+Home-page: https://github.com/ashawkey/raytracing
+Author: kiui
+Author-email: ashawkey1999@gmail.com
+License: UNKNOWN
+Platform: UNKNOWN
+Requires-Dist: dearpygui
+Requires-Dist: matplotlib
+Requires-Dist: ninja
+Requires-Dist: numpy
+Requires-Dist: opencv-python
+Requires-Dist: torch
+Requires-Dist: tqdm
+Requires-Dist: trimesh
+
+UNKNOWN
+
+
