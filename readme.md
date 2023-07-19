@@ -2,24 +2,29 @@
 
 A CUDA Mesh RayTracer with BVH acceleration.
 
-### Install
+### Easy, but Not guaranteed Install
+You can open the folder called "raytracing_gpu_ready_library" and copy the contents of it and paste inside of the virtual environment site-packages. Then you should move to the next step, if it did not work, use normal install. 
+
+
+### Normal Install
 
 ```python
-git clone https://github.com/ashawkey/raytracing
-cd raytracing
+git clone https://github.com/shinawy/raytracing_EBBAMS
+cd raytracing_EBBAMS
 pip install .
 ```
 
 ### Usage
-
+You should first export the path of the repo folder in the repo in PYTHONPATH variable using:
+```
+export PYTHONPATH="/path/to/raytracing_EBBAMS/:$PYTHONPATH"
+```
 Example for a mesh normal renderer:
 
 ```bash
 python renderer.py # default, show a dodecahedron
-python renderer.py --mesh example.ply # show any mesh file
 ```
 
-https://user-images.githubusercontent.com/25863658/183238748-7ac82808-6cd3-4bb6-867a-9c22f8e3f7dd.mp4
 
 Example code:
 
@@ -30,19 +35,38 @@ import trimesh
 import torch
 import raytracing
 
-# build BVH from mesh
-mesh = trimesh.load('example.ply')
-RT = raytracing.RayTracer(mesh.vertices, mesh.faces) # build with numpy.ndarray
 
-# get rays
-rays_o, rays_d = get_ray(pose, intrinsics, H, W) # [N, 3], [N, 3], query with torch.Tensor (on cuda)
+def gpu_ray_tracer(gpu_raytracer, part_tricenters, part_fnorm):
+    gpu_intersections, gpu_fn, gpu_depth, gpu_rhq = gpu_raytracer.trace(
+        torch.from_numpy(part_tricenters),
+        torch.from_numpy(part_fnorm),
+    )
 
-# query ray-mesh intersection
-intersections, face_normals, depth = RT.trace(rays_o, rays_d) # [N, 3], [N, 3], [N,]
+    gpu_int = gpu_intersections.cpu().data.numpy()
+    gpu_dep_arr = gpu_depth.cpu().data.numpy()
+    gpu_fn_arr = gpu_fn.cpu().data.numpy()
+    gpu_ray_hit_freq = gpu_rhq.cpu().data.numpy()
+
+    return gpu_int, gpu_dep_arr, gpu_ray_hit_freq
+
+def main():
+  part_trimesh: trimesh.Trimesh = trimesh.load_mesh(part_filename)
+  zmin: float = part_trimesh.bounds[0][-1]
+  zmax: float = part_trimesh.bounds[1][-1]
+  part_height: float = zmax - zmin
+  max_dist: float = part_height
+  min_dist: float = 0.0001
+  support_ray_tracer = raytracing.RayTracer(
+      part_trimesh.vertices, part_trimesh.faces, max_dist, min_dist
+  )
+  gpu_int, gpu_dep_arr, gpu_ray_hit_freq = gpu_ray_tracer(
+          support_ray_tracer, tri_centers, face_normals
+      )
+
 ```
 
 
 
 ### Acknowledgement
-
+* This is a forked repository from the original Repo:: https://github.com/ashawkey/raytracing
 * Credits to [Thomas Müller](https://tom94.net/)'s amazing [tiny-cuda-nn](https://github.com/NVlabs/tiny-cuda-nn) and [instant-ngp](https://github.com/NVlabs/instant-ngp)!
