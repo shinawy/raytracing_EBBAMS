@@ -2,6 +2,17 @@
 
 A CUDA Mesh RayTracer with BVH acceleration.
 
+### First Install CUDA 11.7
+```
+#!/bin/bash 
+
+# this bash installs Cuda toolkit 11.7
+
+wget https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_515.43.04_linux.run
+sudo sh cuda_11.7.0_515.43.04_linux.run
+
+```
+
 ### Easy, but Not guaranteed Install
 You can open the folder called "raytracing_gpu_ready_library" and copy the contents of it and paste inside of the virtual environment site-packages. Then you should move to the next step, if it did not work, use normal install. 
 
