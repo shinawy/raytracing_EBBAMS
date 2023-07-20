@@ -8,8 +8,11 @@ A CUDA Mesh RayTracer with BVH acceleration.
 
 # this bash installs Cuda toolkit 11.7
 
-wget https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_515.43.04_linux.run
-sudo sh cuda_11.7.0_515.43.04_linux.run
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-11-7_11.7.1-1_amd64.deb
+sudo dpkg -i cuda-11-7_11.7.1-1_amd64.deb
+sudo apt-key add /var/cuda-11-7_11.7.1-1_amd64/7fa2af80.pub
+sudo apt-get update
+sudo apt-get -y install cuda
 
 ```
 
